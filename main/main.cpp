@@ -11,6 +11,7 @@
 
 #include "pins.h"
 #include "edge-impulse-sdk/classifier/ei_run_classifier.h"
+#include "edge-impulse-sdk/dsp/numpy.hpp"
 #include "model-parameters/model_metadata.h"
 
 // =========================================================
@@ -75,15 +76,6 @@ static void led_set(bool r, bool g, bool b) {
 }
 
 // =========================================================
-// Callback que o Edge Impulse usa pra ler as features
-// =========================================================
-static float *g_feature_ptr = NULL;
-static int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
-    memcpy(out_ptr, g_feature_ptr + offset, length * sizeof(float));
-    return 0;
-}
-
-// =========================================================
 // TASK 1 — Lê IMU e empilha amostras
 // =========================================================
 extern "C" void mpu_task(void *p) {
@@ -127,11 +119,8 @@ extern "C" void inference_task(void *p) {
 
     while (1) {
         if (xQueueReceive(xWindowQueue, &window, portMAX_DELAY) == pdPASS) {
-            g_feature_ptr = window.features;
-
             signal_t features_signal;
-            features_signal.total_length = FEATURE_SIZE;
-            features_signal.get_data = &raw_feature_get_data;
+            numpy::signal_from_buffer(window.features, FEATURE_SIZE, &features_signal);
 
             EI_IMPULSE_ERROR res = run_classifier(&features_signal, &result, false);
 
