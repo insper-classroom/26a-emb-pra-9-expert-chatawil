@@ -73,3 +73,7 @@ endif()
 
 # Hardware-specific examples in subdirectories:
 add_subdirectory(main)
+add_subdirectory(minimal_blink)
+add_subdirectory(minimal_usb)
+add_subdirectory(minimal_freertos)
+add_subdirectory(minimal_ei)
